@@ -1,9 +1,10 @@
 package com.intecx.inscope.service.impl;
 
-import com.intecx.inscope.dto.ai.AiAllocationRequest;
-import com.intecx.inscope.dto.ai.AiAllocationRequest.ProfilePayload;
-import com.intecx.inscope.dto.ai.AiAllocationRequest.TaskPayload;
-import com.intecx.inscope.dto.ai.AiAllocationResponse;
+import com.intecx.inscope.dto.ai.AiAssignmentRequest;
+import com.intecx.inscope.dto.ai.AiAssignmentRequest.ProfilePayload;
+import com.intecx.inscope.dto.ai.AiAssignmentRequest.TaskPayload;
+import com.intecx.inscope.dto.ai.AiAssignmentResponse;
+import com.intecx.inscope.dto.ai.AiModelMetricsResponse;
 import com.intecx.inscope.dto.ai.AiRiskPredictionRequest;
 import com.intecx.inscope.dto.ai.AiRiskPredictionResponse;
 import com.intecx.inscope.entity.Project;
@@ -23,12 +24,10 @@ import com.intecx.inscope.service.AiEstimationService;
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -112,7 +111,7 @@ public class AiEstimationServiceImpl implements AiEstimationService {
 
     @Override
     @Transactional(readOnly = true)
-    public AiAllocationResponse optimizeAllocation(UUID projectId, String algorithm, Double maxHoursPerProfile) {
+    public AiAssignmentResponse optimizeAssignments(UUID projectId, String algorithm, Double maxHoursPerProfile) {
         projectRepository.findByIdAndDeletedAtIsNull(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND));
 
@@ -141,22 +140,22 @@ public class AiEstimationServiceImpl implements AiEstimationService {
             throw new BadRequestException("No hay perfiles técnicos activos disponibles");
         }
 
-        AiAllocationRequest payload = new AiAllocationRequest(tasks, profiles, maxHoursPerProfile, algorithm);
+        AiAssignmentRequest payload = new AiAssignmentRequest(tasks, profiles, maxHoursPerProfile, algorithm);
 
         return aiWebClient.post()
-                .uri("/api/v1/allocation/optimize")
+                .uri("/api/v1/assignments/optimize")
                 .bodyValue(payload)
                 .retrieve()
-                .bodyToMono(AiAllocationResponse.class)
+                .bodyToMono(AiAssignmentResponse.class)
                 .block();
     }
 
     @Override
-    public Map<String, Object> getModelMetrics() {
+    public AiModelMetricsResponse getModelMetrics() {
         return aiWebClient.get()
                 .uri("/api/v1/models/metrics")
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .bodyToMono(AiModelMetricsResponse.class)
                 .block();
     }
 }

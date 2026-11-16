@@ -1,11 +1,11 @@
 package com.intecx.inscope.rest;
 
-import com.intecx.inscope.dto.ai.AiAllocationResponse;
+import com.intecx.inscope.dto.ai.AiAssignmentResponse;
+import com.intecx.inscope.dto.ai.AiModelMetricsResponse;
 import com.intecx.inscope.dto.ai.AiRiskPredictionResponse;
 import com.intecx.inscope.service.AiEstimationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "IA y Optimización", description = "Predicción de riesgo/contingencia y optimización de asignación vía microservicio Python")
+@Tag(name = "IA y Optimización", description = "Predicción de riesgo/contingencia y optimización de asignaciones vía microservicio Python")
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -33,21 +33,20 @@ public class AiEstimationController {
     }
 
     @Operation(summary = "Optimizar asignación de perfiles técnicos a tareas del proyecto")
-    @PostMapping("/projects/{projectId}/ai/optimize-allocation")
+    @PostMapping("/projects/{projectId}/ai/optimize-assignments")
     @PreAuthorize("hasAuthority('estimation:read')")
-    public ResponseEntity<AiAllocationResponse> optimizeAllocation(
+    public ResponseEntity<AiAssignmentResponse> optimizeAssignments(
             @PathVariable UUID projectId,
             @RequestParam(defaultValue = "astar") String algorithm,
             @RequestParam(required = false) Double maxHoursPerProfile
     ) {
-        return ResponseEntity.ok(aiEstimationService.optimizeAllocation(projectId, algorithm, maxHoursPerProfile));
+        return ResponseEntity.ok(aiEstimationService.optimizeAssignments(projectId, algorithm, maxHoursPerProfile));
     }
 
     @Operation(summary = "Consultar métricas e hiperparámetros de los modelos entrenados")
     @GetMapping("/ai/models/metrics")
     @PreAuthorize("hasAuthority('estimation:read')")
-    public ResponseEntity<Map<String, Object>> getModelMetrics() {
+    public ResponseEntity<AiModelMetricsResponse> getModelMetrics() {
         return ResponseEntity.ok(aiEstimationService.getModelMetrics());
     }
 }
-
