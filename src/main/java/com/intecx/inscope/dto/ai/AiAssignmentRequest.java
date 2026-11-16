@@ -6,7 +6,7 @@ import com.intecx.inscope.enumeration.TechnicalRole;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record AiAllocationRequest(
+public record AiAssignmentRequest(
         List<TaskPayload> tasks,
         List<ProfilePayload> profiles,
         @JsonProperty("max_hours_per_profile") Double maxHoursPerProfile,
@@ -28,4 +28,3 @@ public record AiAllocationRequest(
     ) {
     }
 }
-
