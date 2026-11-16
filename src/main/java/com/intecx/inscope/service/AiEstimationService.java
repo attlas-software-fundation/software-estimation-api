@@ -1,16 +1,15 @@
 package com.intecx.inscope.service;
 
-import com.intecx.inscope.dto.ai.AiAllocationResponse;
+import com.intecx.inscope.dto.ai.AiAssignmentResponse;
+import com.intecx.inscope.dto.ai.AiModelMetricsResponse;
 import com.intecx.inscope.dto.ai.AiRiskPredictionResponse;
-import java.util.Map;
 import java.util.UUID;
 
 public interface AiEstimationService {
 
     AiRiskPredictionResponse predictRisk(UUID projectId);
 
-    AiAllocationResponse optimizeAllocation(UUID projectId, String algorithm, Double maxHoursPerProfile);
+    AiAssignmentResponse optimizeAssignments(UUID projectId, String algorithm, Double maxHoursPerProfile);
 
-    Map<String, Object> getModelMetrics();
+    AiModelMetricsResponse getModelMetrics();
 }
-

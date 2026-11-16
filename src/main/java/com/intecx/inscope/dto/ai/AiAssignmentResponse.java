@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record AiAllocationResponse(
+public record AiAssignmentResponse(
         String algorithm,
         List<AssignmentPayload> assignments,
         @JsonProperty("total_cost") BigDecimal totalCost,
@@ -23,4 +23,3 @@ public record AiAllocationResponse(
     ) {
     }
 }
-
