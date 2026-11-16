@@ -1,0 +1,50 @@
+services:
+  inscope-ai:
+    image: ghcr.io/${AI_IMAGE_OWNER:-vargas-jc}/software-estimation-ai:latest
+    container_name: inscope-ai
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      APP_ENV: prod
+      HOST: 0.0.0.0
+      PORT: 8000
+    volumes:
+      - ai_data:/app/data
+      - ai_artifacts:/app/artifacts
+    networks:
+      - inscope-net
+
+  inscope-api:
+    image: ghcr.io/${API_IMAGE_OWNER:-attlas-software-fundation}/software-estimation-api:latest
+    container_name: inscope-api
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - inscope-ai
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      AZURE_KEYVAULT_ENDPOINT: ${AZURE_KEYVAULT_ENDPOINT}
+      AI_SERVICE_URL: http://inscope-ai:8000
+    networks:
+      - inscope-net
+
+  inscope-client:
+    image: ghcr.io/${CLIENT_IMAGE_OWNER:-attlas-software-fundation}/software-estimation-client:latest
+    container_name: inscope-client
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - inscope-api
+    networks:
+      - inscope-net
+
+volumes:
+  ai_data:
+  ai_artifacts:
+
+networks:
+  inscope-net:
+    driver: bridge
