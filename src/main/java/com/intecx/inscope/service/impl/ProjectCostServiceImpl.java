@@ -68,7 +68,8 @@ public class ProjectCostServiceImpl implements ProjectCostService {
                 .toList();
         CostAmountResponse total = costAggregator.subtotal(
                 contributions.stream().map(TaskProfileCostResponse::cost).toList());
-        return projectCostMapper.toTaskResponse(rows.getFirst().getTaskId(), total, contributions);
+        return projectCostMapper.toTaskResponse(
+                rows.getFirst().getTaskId(), rows.getFirst().getTaskTitle(), total, contributions);
     }
 
     private TaskProfileCostResponse calculateContribution(ProjectCostProjection row, BigDecimal hours) {

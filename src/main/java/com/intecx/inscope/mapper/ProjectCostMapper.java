@@ -18,16 +18,20 @@ public class ProjectCostMapper {
     public TaskProfileCostResponse toContributionResponse(ProjectCostProjection row, BigDecimal hours, BigDecimal cost) {
         return TaskProfileCostResponse.builder()
                 .technicalProfileId(row.getTechnicalProfileId())
+                .profileName(row.getProfileName())
+                .profileEmail(row.getProfileEmail())
+                .profileRole(row.getProfileRole())
                 .hours(hours)
                 .hourlyRate(row.getHourlyRate())
                 .cost(new CostAmountResponse(cost, CurrencyCode.valueOf(row.getCurrency())))
                 .build();
     }
 
-    public TaskCostResponse toTaskResponse(UUID taskId, CostAmountResponse total,
+    public TaskCostResponse toTaskResponse(UUID taskId, String taskTitle, CostAmountResponse total,
             List<TaskProfileCostResponse> contributions) {
         return TaskCostResponse.builder()
                 .taskId(taskId)
+                .taskTitle(taskTitle)
                 .total(total)
                 .contributions(contributions)
                 .build();

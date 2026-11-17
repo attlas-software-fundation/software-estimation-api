@@ -29,6 +29,7 @@ class ProfileCostAggregatorTest {
 
         assertEquals(1, result.size());
         assertEquals(PROFILE_A, result.getFirst().technicalProfileId());
+        assertEquals("Ana Ruiz", result.getFirst().profileName());
         assertEquals(0, new BigDecimal("150").compareTo(result.getFirst().subtotal().amount()));
     }
 
@@ -53,6 +54,9 @@ class ProfileCostAggregatorTest {
     private TaskProfileCostResponse contribution(UUID profileId, String amount, CurrencyCode currency) {
         return TaskProfileCostResponse.builder()
                 .technicalProfileId(profileId)
+                .profileName("Ana Ruiz")
+                .profileEmail("ana@example.com")
+                .profileRole("DEVELOPER")
                 .hours(BigDecimal.ONE)
                 .hourlyRate(BigDecimal.ONE)
                 .cost(new CostAmountResponse(new BigDecimal(amount), currency))
