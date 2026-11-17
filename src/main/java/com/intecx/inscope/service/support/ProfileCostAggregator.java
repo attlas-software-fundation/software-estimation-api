@@ -25,6 +25,7 @@ public class ProfileCostAggregator {
         }
 
         Map<UUID, List<CostAmountResponse>> costsByProfile = new LinkedHashMap<>();
+        Map<UUID, TaskProfileCostResponse> identityByProfile = new LinkedHashMap<>();
         for (TaskProfileCostResponse contribution : contributions) {
             if (contribution == null) {
                 throw new BadRequestException("Las contribuciones no pueden contener elementos nulos");
@@ -34,9 +35,18 @@ public class ProfileCostAggregator {
             }
             costsByProfile.computeIfAbsent(contribution.technicalProfileId(), id -> new ArrayList<>())
                     .add(contribution.cost());
+            identityByProfile.putIfAbsent(contribution.technicalProfileId(), contribution);
         }
         return costsByProfile.entrySet().stream()
-                .map(entry -> new ProfileCostResponse(entry.getKey(), costAggregator.subtotal(entry.getValue())))
+                .map(entry -> {
+                    TaskProfileCostResponse identity = identityByProfile.get(entry.getKey());
+                    return new ProfileCostResponse(
+                            entry.getKey(),
+                            identity.profileName(),
+                            identity.profileEmail(),
+                            identity.profileRole(),
+                            costAggregator.subtotal(entry.getValue()));
+                })
                 .toList();
     }
 }

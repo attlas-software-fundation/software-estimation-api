@@ -8,19 +8,27 @@ import com.intecx.inscope.dto.response.FileAttachmentResponse;
 import com.intecx.inscope.dto.response.ProjectResponse;
 import com.intecx.inscope.entity.FileAttachment;
 import com.intecx.inscope.entity.ReportSnapshot;
+import com.intecx.inscope.entity.Task;
+import com.intecx.inscope.entity.TechnicalProfile;
+import com.intecx.inscope.entity.UserStory;
 import com.intecx.inscope.enumeration.AttachmentType;
 import com.intecx.inscope.exception.ResourceNotFoundException;
 import com.intecx.inscope.mapper.FileAttachmentMapper;
 import com.intecx.inscope.repository.FileAttachmentRepository;
 import com.intecx.inscope.repository.ReportSnapshotRepository;
+import com.intecx.inscope.repository.TaskRepository;
+import com.intecx.inscope.repository.UserStoryRepository;
 import com.intecx.inscope.service.BunnyStorageService;
 import com.intecx.inscope.service.ProjectService;
 import com.intecx.inscope.service.ReportService;
 import com.intecx.inscope.service.support.BunnyPaths;
 import com.intecx.inscope.service.support.EstimationPdfGenerator;
+import com.intecx.inscope.service.support.PdfStorySection;
+import com.intecx.inscope.service.support.PdfTaskLine;
 import com.intecx.inscope.service.support.ProjectsExcelExporter;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +48,15 @@ public class ReportServiceImpl implements ReportService {
     private final FileAttachmentRepository fileAttachmentRepository;
     private final BunnyStorageService bunnyStorageService;
     private final ProjectService projectService;
+    private final UserStoryRepository userStoryRepository;
+    private final TaskRepository taskRepository;
     private final FileAttachmentMapper fileAttachmentMapper;
 
     @Override
     @Transactional
     public FileAttachmentResponse generateEstimationPdf(UUID projectId, UUID estimationId, UUID actorId) {
         ReportSnapshot snapshot = requireSnapshot(projectId, estimationId);
-        byte[] pdf = EstimationPdfGenerator.generate(snapshot);
+        byte[] pdf = EstimationPdfGenerator.generate(snapshot, storySections(projectId));
         String fileName = estimationId + ".pdf";
         String storagePath = BunnyPaths.reportPdf(estimationId);
 
@@ -56,7 +66,9 @@ public class ReportServiceImpl implements ReportService {
         if (previous != null) {
             snapshot.setFile(null);
             reportSnapshotRepository.saveAndFlush(snapshot);
-            bunnyStorageService.delete(previous.getStoragePath());
+            if (!storagePath.equals(previous.getStoragePath())) {
+                bunnyStorageService.delete(previous.getStoragePath());
+            }
             fileAttachmentRepository.delete(previous);
             fileAttachmentRepository.flush();
         }
@@ -88,6 +100,12 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     @Transactional(readOnly = true)
+    public String estimationPdfFileName(UUID projectId, UUID estimationId) {
+        return EstimationPdfGenerator.fileName(requireSnapshot(projectId, estimationId).getProjectName());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public byte[] exportProjectsExcel() {
         List<ProjectResponse> projects = new ArrayList<>();
         int pageNumber = PaginationConstants.FIRST_PAGE;
@@ -102,6 +120,43 @@ public class ReportServiceImpl implements ReportService {
             pageNumber++;
         } while (hasNext);
         return ProjectsExcelExporter.export(projects);
+    }
+
+    private List<PdfStorySection> storySections(UUID projectId) {
+        List<UserStory> stories = userStoryRepository.findByProject_IdAndDeletedAtIsNull(projectId).stream()
+                .sorted(Comparator.comparing(UserStory::getPosition))
+                .toList();
+        List<Task> tasks = taskRepository.findByStory_Project_IdAndDeletedAtIsNull(projectId);
+        List<PdfStorySection> sections = new ArrayList<>();
+        for (UserStory story : stories) {
+            List<PdfTaskLine> lines = tasks.stream()
+                    .filter(task -> task.getStory().getId().equals(story.getId()))
+                    .sorted(Comparator.comparing(Task::getPosition))
+                    .map(task -> new PdfTaskLine(
+                            task.getTitle(),
+                            profileNames(task),
+                            task.getEstimateHours() == null ? 0 : task.getEstimateHours()
+                    ))
+                    .toList();
+            sections.add(new PdfStorySection(
+                    story.getCode(),
+                    story.getTitle(),
+                    story.getStoryPoints() == null ? null : story.getStoryPoints().intValue(),
+                    lines
+            ));
+        }
+        return sections;
+    }
+
+    private String profileNames(Task task) {
+        if (task.getResponsibleProfiles() == null || task.getResponsibleProfiles().isEmpty()) {
+            return "Sin perfil";
+        }
+        return task.getResponsibleProfiles().stream()
+                .map(TechnicalProfile::getName)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .reduce((left, right) -> left + ", " + right)
+                .orElse("Sin perfil");
     }
 
     private ReportSnapshot requireSnapshot(UUID projectId, UUID estimationId) {

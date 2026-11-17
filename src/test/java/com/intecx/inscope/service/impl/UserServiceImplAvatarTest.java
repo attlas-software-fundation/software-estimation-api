@@ -11,6 +11,8 @@ import com.intecx.inscope.exception.ResourceNotFoundException;
 import com.intecx.inscope.mapper.UserMapper;
 import com.intecx.inscope.repository.FileAttachmentRepository;
 import com.intecx.inscope.repository.PasswordResetTokenRepository;
+import com.intecx.inscope.repository.ProjectRepository;
+import com.intecx.inscope.repository.ProjectStatusHistoryRepository;
 import com.intecx.inscope.repository.RoleRepository;
 import com.intecx.inscope.repository.UserRepository;
 import com.intecx.inscope.service.BunnyStorageService;
@@ -34,6 +36,10 @@ class UserServiceImplAvatarTest {
     @Mock
     private RoleRepository roleRepository;
     @Mock
+    private ProjectRepository projectRepository;
+    @Mock
+    private ProjectStatusHistoryRepository projectStatusHistoryRepository;
+    @Mock
     private PasswordResetTokenRepository tokenRepository;
     @Mock
     private FileAttachmentRepository fileAttachmentRepository;
@@ -53,6 +59,8 @@ class UserServiceImplAvatarTest {
         service = new UserServiceImpl(
                 userRepository,
                 roleRepository,
+                projectRepository,
+                projectStatusHistoryRepository,
                 tokenRepository,
                 fileAttachmentRepository,
                 userMapper,

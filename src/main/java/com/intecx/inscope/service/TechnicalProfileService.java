@@ -7,11 +7,14 @@ import com.intecx.inscope.dto.request.profile.ToggleProfileStatusRequest;
 import com.intecx.inscope.dto.request.profile.UpdateCerRequest;
 import com.intecx.inscope.dto.request.profile.UpdateTechnicalProfileRequest;
 import com.intecx.inscope.dto.response.TechnicalProfileResponse;
+import java.util.List;
 import java.util.UUID;
 
 public interface TechnicalProfileService {
 
     PaginatedResponse<TechnicalProfileResponse> search(QueryRequest query);
+
+    List<TechnicalProfileResponse> listActive();
 
     TechnicalProfileResponse getById(UUID id);
 

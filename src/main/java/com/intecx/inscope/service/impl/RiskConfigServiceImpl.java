@@ -2,6 +2,7 @@ package com.intecx.inscope.service.impl;
 
 import com.intecx.inscope.dto.request.risk.UpdateRiskConfigRequest;
 import com.intecx.inscope.dto.response.RiskConfigResponse;
+import com.intecx.inscope.enumeration.RiskLevel;
 import com.intecx.inscope.entity.Project;
 import com.intecx.inscope.entity.RiskConfig;
 import com.intecx.inscope.exception.ResourceNotFoundException;
@@ -21,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class RiskConfigServiceImpl implements RiskConfigService {
 
     private static final String PROJECT_NOT_FOUND = "Proyecto no encontrado";
-    private static final String CONFIG_NOT_FOUND = "Configuración de riesgo no encontrada";
     private static final BigDecimal DEFAULT_MARGIN = BigDecimal.valueOf(15);
 
     private final RiskConfigRepository riskConfigRepository;
@@ -31,7 +31,11 @@ public class RiskConfigServiceImpl implements RiskConfigService {
     @Override
     @Transactional(readOnly = true)
     public RiskConfigResponse getByProject(UUID projectId) {
-        return riskConfigMapper.toResponse(findByProject(projectId));
+        projectRepository.findByIdAndDeletedAtIsNull(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(PROJECT_NOT_FOUND));
+        return riskConfigRepository.findByProjectId(projectId)
+                .map(riskConfigMapper::toResponse)
+                .orElseGet(this::defaultConfig);
     }
 
     @Override
@@ -56,8 +60,11 @@ public class RiskConfigServiceImpl implements RiskConfigService {
         return riskConfigMapper.toResponse(riskConfigRepository.save(config));
     }
 
-    private RiskConfig findByProject(UUID projectId) {
-        return riskConfigRepository.findByProjectId(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException(CONFIG_NOT_FOUND));
+    private RiskConfigResponse defaultConfig() {
+        return RiskConfigResponse.builder()
+                .level(RiskLevel.MEDIUM)
+                .contingencyMargin(DEFAULT_MARGIN)
+                .saved(false)
+                .build();
     }
 }

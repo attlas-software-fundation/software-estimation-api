@@ -6,7 +6,11 @@ import java.util.UUID;
 
 public interface ProjectCostProjection {
     UUID getTaskId();
+    String getTaskTitle();
     UUID getTechnicalProfileId();
+    String getProfileName();
+    String getProfileEmail();
+    String getProfileRole();
     BigDecimal getEstimateHours();
     BigDecimal getAdjustedHours();
     BigDecimal getHourlyRate();
