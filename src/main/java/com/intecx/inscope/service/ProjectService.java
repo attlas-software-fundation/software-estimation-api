@@ -6,6 +6,7 @@ import com.intecx.inscope.dto.request.project.CreateProjectRequest;
 import com.intecx.inscope.dto.request.project.UpdateProjectRequest;
 import com.intecx.inscope.dto.request.project.UpdateProjectStatusRequest;
 import com.intecx.inscope.dto.response.ProjectResponse;
+import com.intecx.inscope.dto.response.SystemReportSummaryResponse;
 import com.intecx.inscope.dto.response.ProjectStatusHistoryResponse;
 import java.util.List;
 import java.util.UUID;
@@ -13,6 +14,8 @@ import java.util.UUID;
 public interface ProjectService {
 
     PaginatedResponse<ProjectResponse> search(QueryRequest query);
+
+    SystemReportSummaryResponse summarize(QueryRequest query);
 
     ProjectResponse getById(UUID id);
 
@@ -25,6 +28,4 @@ public interface ProjectService {
     List<ProjectStatusHistoryResponse> getStatusHistory(UUID id);
 
     void delete(UUID id, UUID actorId);
-
-    void deleteEstimation(UUID projectId, UUID estimationId);
 }

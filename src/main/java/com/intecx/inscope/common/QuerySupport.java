@@ -61,6 +61,15 @@ public class QuerySupport {
         return PaginatedResponse.of(collectionKey, items, PageMeta.of(page.getTotalElements(), page.getNumber(), page.getSize()));
     }
 
+    public <E> Specification<E> specification(
+            Specification<E> scope,
+            QueryFields fields,
+            QueryRequest query
+    ) {
+        QueryRequest safe = query == null ? new QueryRequest(null, null) : query;
+        return scope.and(FilterSpecifications.from(safe.filters(), fields));
+    }
+
     private <E> Page<E> findPage(
             JpaSpecificationExecutor<E> repository,
             Specification<E> specification,

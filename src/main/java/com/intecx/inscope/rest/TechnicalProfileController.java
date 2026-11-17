@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,16 @@ public class TechnicalProfileController {
             @RequestBody(required = false) QueryRequest query) {
         PaginatedResponse<TechnicalProfileResponse> response = technicalProfileService.search(query);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Listar perfiles técnicos activos")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado de perfiles activos obtenido exitosamente")
+    })
+    @GetMapping("/active")
+    @PreAuthorize("hasAuthority('profile:read')")
+    public ResponseEntity<List<TechnicalProfileResponse>> listActive() {
+        return ResponseEntity.ok(technicalProfileService.listActive());
     }
 
     @Operation(summary = "Obtener un perfil técnico por su ID")

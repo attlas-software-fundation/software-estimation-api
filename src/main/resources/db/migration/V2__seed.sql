@@ -20,7 +20,8 @@ INSERT INTO in_scope.permissions (code, label, group_code, group_label) VALUES
     ('risk:read', 'Ver riesgos', 'risks', 'Riesgos'),
     ('risk:write', 'Editar riesgos', 'risks', 'Riesgos'),
     ('report:read', 'Ver reportes', 'reports', 'Reportes e historial'),
-    ('history:read', 'Ver historial', 'reports', 'Reportes e historial');
+    ('history:read', 'Ver historial', 'reports', 'Reportes e historial'),
+    ('dashboard:read', 'Ver dashboard', 'reports', 'Reportes e historial');
 
 -- roles y sus permisos
 INSERT INTO in_scope.roles (code, name, description, is_system) VALUES
@@ -44,7 +45,7 @@ JOIN in_scope.permissions p ON p.code IN (
     'estimation:read', 'estimation:write', 'estimation:delete',
     'cost:read', 'cost:write',
     'risk:read', 'risk:write',
-    'report:read', 'history:read'
+    'report:read', 'history:read', 'dashboard:read'
 )
 WHERE r.code = 'estimator';
 
@@ -53,7 +54,7 @@ SELECT r.id, p.id
 FROM in_scope.roles r
 JOIN in_scope.permissions p ON p.code IN (
     'project:read', 'backlog:read', 'estimation:read', 'cost:read',
-    'risk:read', 'report:read', 'history:read'
+    'risk:read', 'report:read', 'history:read', 'dashboard:read'
 )
 WHERE r.code = 'viewer';
 

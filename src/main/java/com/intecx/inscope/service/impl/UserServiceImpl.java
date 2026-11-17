@@ -21,6 +21,8 @@ import com.intecx.inscope.exception.ResourceNotFoundException;
 import com.intecx.inscope.mapper.UserMapper;
 import com.intecx.inscope.repository.FileAttachmentRepository;
 import com.intecx.inscope.repository.PasswordResetTokenRepository;
+import com.intecx.inscope.repository.ProjectRepository;
+import com.intecx.inscope.repository.ProjectStatusHistoryRepository;
 import com.intecx.inscope.repository.RoleRepository;
 import com.intecx.inscope.repository.UserRepository;
 import com.intecx.inscope.service.BunnyStorageService;
@@ -57,6 +59,8 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ProjectRepository projectRepository;
+    private final ProjectStatusHistoryRepository projectStatusHistoryRepository;
     private final PasswordResetTokenRepository tokenRepository;
     private final FileAttachmentRepository fileAttachmentRepository;
     private final UserMapper userMapper;
@@ -276,20 +280,19 @@ public class UserServiceImpl implements UserService {
         if (user.getId().equals(actorId)) {
             throw new BadRequestException("No puedes eliminar tu propia cuenta de usuario");
         }
+        if (projectRepository.existsByResponsible_Id(id) || projectStatusHistoryRepository.existsByChangedBy_Id(id)) {
+            throw new ConflictException("No se puede eliminar el usuario porque está asociado a proyectos existentes");
+        }
 
         FileAttachment avatar = user.getAvatar();
         if (avatar != null) {
             user.setAvatar(null);
-            userRepository.saveAndFlush(user);
+            userRepository.flush();
             bunnyStorageService.delete(avatar.getStoragePath());
             fileAttachmentRepository.delete(avatar);
         }
 
-        user.setDeletedAt(LocalDateTime.now());
-        user.setDeletedBy(actorId);
-        user.setActive(false);
-
-        userRepository.save(user);
+        userRepository.delete(user);
     }
 
     private void assertSelf(UUID targetId, UUID actorId) {

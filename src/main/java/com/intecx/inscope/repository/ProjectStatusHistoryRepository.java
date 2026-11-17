@@ -17,4 +17,8 @@ public interface ProjectStatusHistoryRepository extends JpaRepository<ProjectSta
             ORDER BY history.changedAt DESC, history.id DESC
             """)
     List<ProjectStatusHistory> findByProjectIdWithChangedBy(@Param("projectId") UUID projectId);
+
+    void deleteByProject_Id(UUID projectId);
+
+    boolean existsByChangedBy_Id(UUID changedById);
 }

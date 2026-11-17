@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
 public interface ProjectRepository extends JpaRepository<Project, UUID>, JpaSpecificationExecutor<Project> {
 
     Optional<Project> findByIdAndDeletedAtIsNull(UUID id);
+
+    boolean existsByResponsible_Id(UUID responsibleId);
 }

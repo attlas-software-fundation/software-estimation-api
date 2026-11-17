@@ -10,7 +10,10 @@ import org.springframework.data.repository.query.Param;
 public interface ProjectCostRepository extends JpaRepository<Project, UUID> {
 
     @Query(value = """
-            SELECT t.id AS "taskId", a.technical_profile_id AS "technicalProfileId",
+            SELECT t.id AS "taskId", t.title AS "taskTitle",
+                   a.technical_profile_id AS "technicalProfileId",
+                   p.name AS "profileName", p.email AS "profileEmail",
+                   CAST(p.role AS TEXT) AS "profileRole",
                    CAST(t.estimate_hours AS NUMERIC) AS "estimateHours", h.hours AS "adjustedHours",
                    p.hourly_rate AS "hourlyRate", p.currency AS "currency",
                    p.is_active AS "profileActive", p.deleted_at AS "profileDeletedAt"

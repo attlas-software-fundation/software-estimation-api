@@ -1,10 +1,11 @@
 package com.intecx.inscope.rest;
 
-import com.intecx.inscope.common.PaginatedResponse;
-import com.intecx.inscope.common.QueryRequest;
 import com.intecx.inscope.dto.request.userstory.CreateUserStoryRequest;
+import com.intecx.inscope.dto.request.userstory.ReorderUserStoriesRequest;
 import com.intecx.inscope.dto.request.userstory.UpdateUserStoryRequest;
 import com.intecx.inscope.dto.response.UserStoryResponse;
+import com.intecx.inscope.enumeration.StoryPriority;
+import com.intecx.inscope.enumeration.StoryStatus;
 import com.intecx.inscope.security.UserPrincipal;
 import com.intecx.inscope.service.UserStoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Historias de usuario", description = "Endpoints para la gestión de historias de usuario del backlog")
@@ -35,19 +38,20 @@ public class UserStoryController {
 
     private final UserStoryService userStoryService;
 
-    @Operation(summary = "Búsqueda paginada de historias de un proyecto")
+    @Operation(summary = "Listar historias de un proyecto con filtros opcionales")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Listado paginado obtenido exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Filtros o criterios de búsqueda inválidos"),
+            @ApiResponse(responseCode = "200", description = "Listado obtenido exitosamente"),
             @ApiResponse(responseCode = "404", description = "Proyecto no encontrado")
     })
-    @PostMapping("/projects/{projectId}/user-stories/search")
+    @GetMapping("/projects/{projectId}/user-stories")
     @PreAuthorize("hasAuthority('backlog:read')")
-    public ResponseEntity<PaginatedResponse<UserStoryResponse>> searchByProject(
+    public ResponseEntity<List<UserStoryResponse>> listByProject(
             @PathVariable UUID projectId,
-            @RequestBody(required = false) QueryRequest query
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) StoryPriority priority,
+            @RequestParam(required = false) StoryStatus status
     ) {
-        return ResponseEntity.ok(userStoryService.searchByProject(projectId, query));
+        return ResponseEntity.ok(userStoryService.listByProject(projectId, search, priority, status));
     }
 
     @Operation(summary = "Crear una historia de usuario en un proyecto")
@@ -66,6 +70,23 @@ public class UserStoryController {
     ) {
         UserStoryResponse response = userStoryService.create(projectId, request, principal.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Reordenar las historias de usuario de un proyecto")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Historias reordenadas exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Lista de identificadores inválida"),
+            @ApiResponse(responseCode = "404", description = "Proyecto no encontrado")
+    })
+    @PutMapping("/projects/{projectId}/user-stories/reorder")
+    @PreAuthorize("hasAuthority('backlog:write')")
+    public ResponseEntity<Void> reorder(
+            @PathVariable UUID projectId,
+            @Valid @RequestBody ReorderUserStoriesRequest request,
+            @AuthenticationPrincipal UserPrincipal principal
+    ) {
+        userStoryService.reorder(projectId, request.getStoryIds(), principal.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Obtener una historia de usuario por su ID")

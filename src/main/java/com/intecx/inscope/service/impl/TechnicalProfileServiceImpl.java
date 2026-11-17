@@ -13,9 +13,11 @@ import com.intecx.inscope.entity.TechnicalProfile;
 import com.intecx.inscope.exception.ConflictException;
 import com.intecx.inscope.exception.ResourceNotFoundException;
 import com.intecx.inscope.mapper.TechnicalProfileMapper;
+import com.intecx.inscope.repository.TaskRepository;
 import com.intecx.inscope.repository.TechnicalProfileRepository;
 import com.intecx.inscope.service.TechnicalProfileService;
-import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,6 +41,7 @@ public class TechnicalProfileServiceImpl implements TechnicalProfileService {
             .sortable("createdAt", "name", "email", "role", "experienceLevel", "hourlyRate", "isActive");
 
     private final TechnicalProfileRepository technicalProfileRepository;
+    private final TaskRepository taskRepository;
     private final TechnicalProfileMapper technicalProfileMapper;
 
     @Override
@@ -54,6 +57,15 @@ public class TechnicalProfileServiceImpl implements TechnicalProfileService {
                 technicalProfileMapper::toResponse,
                 "profilesResponse"
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<TechnicalProfileResponse> listActive() {
+        return technicalProfileRepository.findByDeletedAtIsNullAndIsActiveTrue().stream()
+                .sorted(Comparator.comparing(TechnicalProfile::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(technicalProfileMapper::toResponse)
+                .toList();
     }
 
     @Override
@@ -142,10 +154,7 @@ public class TechnicalProfileServiceImpl implements TechnicalProfileService {
         TechnicalProfile profile = technicalProfileRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil técnico no encontrado"));
 
-        profile.setDeletedAt(LocalDateTime.now());
-        profile.setDeletedBy(actorId);
-        profile.setActive(false);
-
-        technicalProfileRepository.save(profile);
+        taskRepository.deleteAssignmentsByProfileId(id);
+        technicalProfileRepository.delete(profile);
     }
 }

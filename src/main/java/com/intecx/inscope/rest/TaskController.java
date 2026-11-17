@@ -1,12 +1,10 @@
 package com.intecx.inscope.rest;
 
-import com.intecx.inscope.common.PaginatedResponse;
-import com.intecx.inscope.common.QueryRequest;
 import com.intecx.inscope.dto.request.task.CreateTaskRequest;
+import com.intecx.inscope.dto.request.task.ReorderTasksRequest;
 import com.intecx.inscope.dto.request.task.UpdateTaskRequest;
-import com.intecx.inscope.dto.request.task.UpdateTaskResponsiblesRequest;
 import com.intecx.inscope.dto.response.TaskResponse;
-import com.intecx.inscope.dto.response.TechnicalProfileResponse;
+import com.intecx.inscope.enumeration.TaskStatus;
 import com.intecx.inscope.security.UserPrincipal;
 import com.intecx.inscope.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Tareas", description = "Endpoints para la gestión de tareas y perfiles responsables")
@@ -38,34 +37,34 @@ public class TaskController {
 
     private final TaskService taskService;
 
-    @Operation(summary = "Búsqueda paginada de tareas de una historia")
+    @Operation(summary = "Listar tareas de una historia con filtros opcionales")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Listado paginado obtenido exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Filtros o criterios de búsqueda inválidos"),
+            @ApiResponse(responseCode = "200", description = "Listado obtenido exitosamente"),
             @ApiResponse(responseCode = "404", description = "Historia no encontrada")
     })
-    @PostMapping("/user-stories/{storyId}/tasks/search")
+    @GetMapping("/user-stories/{storyId}/tasks")
     @PreAuthorize("hasAuthority('backlog:read')")
-    public ResponseEntity<PaginatedResponse<TaskResponse>> searchByStory(
+    public ResponseEntity<List<TaskResponse>> listByStory(
             @PathVariable UUID storyId,
-            @RequestBody(required = false) QueryRequest query
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) TaskStatus status
     ) {
-        return ResponseEntity.ok(taskService.searchByStory(storyId, query));
+        return ResponseEntity.ok(taskService.listByStory(storyId, search, status));
     }
 
-    @Operation(summary = "Búsqueda paginada de tareas de un proyecto")
+    @Operation(summary = "Listar tareas de un proyecto con filtros opcionales")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Listado paginado obtenido exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Filtros o criterios de búsqueda inválidos"),
+            @ApiResponse(responseCode = "200", description = "Listado obtenido exitosamente"),
             @ApiResponse(responseCode = "404", description = "Proyecto no encontrado")
     })
-    @PostMapping("/projects/{projectId}/tasks/search")
+    @GetMapping("/projects/{projectId}/tasks")
     @PreAuthorize("hasAuthority('backlog:read')")
-    public ResponseEntity<PaginatedResponse<TaskResponse>> searchByProject(
+    public ResponseEntity<List<TaskResponse>> listByProject(
             @PathVariable UUID projectId,
-            @RequestBody(required = false) QueryRequest query
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) TaskStatus status
     ) {
-        return ResponseEntity.ok(taskService.searchByProject(projectId, query));
+        return ResponseEntity.ok(taskService.listByProject(projectId, search, status));
     }
 
     @Operation(summary = "Crear una tarea dentro de una historia")
@@ -112,35 +111,21 @@ public class TaskController {
         return ResponseEntity.ok(taskService.update(id, request, principal.getId()));
     }
 
-    @Operation(summary = "Consultar perfiles técnicos responsables de una tarea")
+    @Operation(summary = "Reordenar las tareas de una historia de usuario")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Responsables obtenidos exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Tarea no encontrada")
+            @ApiResponse(responseCode = "204", description = "Tareas reordenadas exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Lista de identificadores inválida"),
+            @ApiResponse(responseCode = "404", description = "Historia no encontrada")
     })
-    @GetMapping("/tasks/{id}/responsibles")
-    @PreAuthorize("hasAuthority('backlog:read')")
-    public ResponseEntity<List<TechnicalProfileResponse>> getResponsibles(@PathVariable UUID id) {
-        return ResponseEntity.ok(taskService.getResponsibles(id));
-    }
-
-    @Operation(summary = "Reemplazar los perfiles técnicos responsables de una tarea")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Responsables actualizados exitosamente"),
-            @ApiResponse(responseCode = "400", description = "Lista inválida o con duplicados"),
-            @ApiResponse(responseCode = "404", description = "Tarea o perfil no encontrado")
-    })
-    @PutMapping("/tasks/{id}/responsibles")
+    @PutMapping("/user-stories/{storyId}/tasks/reorder")
     @PreAuthorize("hasAuthority('backlog:write')")
-    public ResponseEntity<TaskResponse> updateResponsibles(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateTaskResponsiblesRequest request,
+    public ResponseEntity<Void> reorder(
+            @PathVariable UUID storyId,
+            @Valid @RequestBody ReorderTasksRequest request,
             @AuthenticationPrincipal UserPrincipal principal
     ) {
-        return ResponseEntity.ok(taskService.updateResponsibles(
-                id,
-                request.getResponsibleProfileIds(),
-                principal.getId()
-        ));
+        taskService.reorder(storyId, request.getTaskIds(), principal.getId());
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Eliminar una tarea (borrado lógico)")
