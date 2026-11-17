@@ -59,14 +59,15 @@ public class ReportController {
             @PathVariable UUID estimationId
     ) {
         byte[] pdf = reportService.downloadEstimationPdf(projectId, estimationId);
+        String fileName = reportService.estimationPdfFileName(projectId, estimationId);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"estimacion-%s.pdf\"".formatted(estimationId))
+                        "attachment; filename=\"" + fileName + "\"")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdf);
     }
 
-    @Operation(summary = "Exportar proyectos y su última estimación a Excel (dashboard)")
+    @Operation(summary = "Exportar proyectos y su última estimación a Excel")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Excel generado")
     })

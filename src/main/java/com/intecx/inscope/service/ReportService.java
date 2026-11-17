@@ -9,5 +9,7 @@ public interface ReportService {
 
     byte[] downloadEstimationPdf(UUID projectId, UUID estimationId);
 
+    String estimationPdfFileName(UUID projectId, UUID estimationId);
+
     byte[] exportProjectsExcel();
 }
