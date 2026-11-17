@@ -1,6 +1,6 @@
 package com.intecx.inscope.dto.request.task;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -14,8 +14,8 @@ import lombok.Setter;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateTaskResponsiblesRequest {
+public class ReorderTasksRequest {
 
-    @NotNull(message = "La lista de responsables es obligatoria")
-    private List<UUID> responsibleProfileIds;
+    @NotEmpty(message = "La lista de identificadores de tareas es obligatoria")
+    private List<UUID> taskIds;
 }
