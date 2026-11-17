@@ -23,6 +23,7 @@ import com.intecx.inscope.enumeration.TechnicalRole;
 import com.intecx.inscope.exception.ConflictException;
 import com.intecx.inscope.exception.ResourceNotFoundException;
 import com.intecx.inscope.mapper.TechnicalProfileMapper;
+import com.intecx.inscope.repository.TaskRepository;
 import com.intecx.inscope.repository.TechnicalProfileRepository;
 import java.math.BigDecimal;
 import java.util.List;
@@ -45,6 +46,8 @@ class TechnicalProfileServiceImplTest {
 
     @Mock
     private TechnicalProfileRepository technicalProfileRepository;
+    @Mock
+    private TaskRepository taskRepository;
 
     private TechnicalProfileMapper technicalProfileMapper;
     private TechnicalProfileServiceImpl technicalProfileService;
@@ -52,7 +55,11 @@ class TechnicalProfileServiceImplTest {
     @BeforeEach
     void setUp() {
         technicalProfileMapper = new TechnicalProfileMapper();
-        technicalProfileService = new TechnicalProfileServiceImpl(technicalProfileRepository, technicalProfileMapper);
+        technicalProfileService = new TechnicalProfileServiceImpl(
+                technicalProfileRepository,
+                taskRepository,
+                technicalProfileMapper
+        );
     }
 
     @ParameterizedTest
@@ -256,7 +263,7 @@ class TechnicalProfileServiceImplTest {
                 .role(TechnicalRole.FRONTEND)
                 .experienceLevel(ExperienceLevel.MID)
                 .hourlyRate(new BigDecimal("80.00"))
-                .currency("PEN")
+                .currency(CurrencyCode.PEN)
                 .isActive(true)
                 .build();
 
@@ -374,7 +381,7 @@ class TechnicalProfileServiceImplTest {
     }
 
     @Test
-    void deleteShouldPerformSoftDeleteAndDeactivateProfile() {
+    void deleteShouldPerformHardDeleteAndRemoveAssignments() {
         UUID actorId = UUID.randomUUID();
         UUID profileId = UUID.randomUUID();
         TechnicalProfile existing = TechnicalProfile.builder()
@@ -392,10 +399,8 @@ class TechnicalProfileServiceImplTest {
 
         technicalProfileService.delete(profileId, actorId);
 
-        assertNotNull(existing.getDeletedAt());
-        assertEquals(actorId, existing.getDeletedBy());
-        assertFalse(existing.isActive());
-        verify(technicalProfileRepository).save(existing);
+        verify(taskRepository).deleteAssignmentsByProfileId(profileId);
+        verify(technicalProfileRepository).delete(existing);
     }
 
     @Test
