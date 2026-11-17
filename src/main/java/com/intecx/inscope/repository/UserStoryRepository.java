@@ -23,6 +23,11 @@ public interface UserStoryRepository extends JpaRepository<UserStory, UUID>, Jpa
 
     List<UserStory> findByProject_IdAndDeletedAtIsNull(UUID projectId);
 
+    List<UserStory> findByProject_Id(UUID projectId);
+
+    @Query("SELECT s.code FROM UserStory s WHERE s.project.id = :projectId")
+    List<String> findCodesByProjectId(@Param("projectId") UUID projectId);
+
     @Query("SELECT COALESCE(MAX(s.position), 0) FROM UserStory s "
             + "WHERE s.project.id = :projectId AND s.deletedAt IS NULL")
     int findLastPositionByProjectId(@Param("projectId") UUID projectId);
