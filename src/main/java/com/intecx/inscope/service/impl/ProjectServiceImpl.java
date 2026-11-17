@@ -11,7 +11,10 @@ import com.intecx.inscope.dto.response.ProjectResponse;
 import com.intecx.inscope.dto.response.ProjectStatusHistoryResponse;
 import com.intecx.inscope.entity.Project;
 import com.intecx.inscope.entity.ProjectStatusHistory;
+import com.intecx.inscope.entity.ReportSnapshot;
+import com.intecx.inscope.entity.Task;
 import com.intecx.inscope.entity.User;
+import com.intecx.inscope.entity.UserStory;
 import com.intecx.inscope.enumeration.ProjectStatus;
 import com.intecx.inscope.exception.ConflictException;
 import com.intecx.inscope.exception.ResourceNotFoundException;
@@ -21,6 +24,7 @@ import com.intecx.inscope.repository.FileAttachmentRepository;
 import com.intecx.inscope.repository.ReportSnapshotRepository;
 import com.intecx.inscope.repository.ProjectRepository;
 import com.intecx.inscope.repository.ProjectStatusHistoryRepository;
+import com.intecx.inscope.repository.TaskRepository;
 import com.intecx.inscope.repository.UserStoryRepository;
 import com.intecx.inscope.repository.UserRepository;
 import com.intecx.inscope.service.BunnyStorageService;
@@ -53,6 +57,7 @@ public class ProjectServiceImpl implements ProjectService {
     private final FileAttachmentRepository fileAttachmentRepository;
     private final ProjectStatusHistoryRepository projectStatusHistoryRepository;
     private final UserStoryRepository userStoryRepository;
+    private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final ProjectMapper projectMapper;
     private final BunnyStorageService bunnyStorageService;
@@ -144,33 +149,35 @@ public class ProjectServiceImpl implements ProjectService {
         Project project = projectRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado"));
         requireDeletableStatus(project.getStatus());
-        if (userStoryRepository.existsByProject_IdAndDeletedAtIsNull(id)) {
-            throw new ConflictException("No se puede eliminar el proyecto mientras tenga historias activas");
+
+        List<ReportSnapshot> snapshots = reportSnapshotRepository.findByProject_Id(id);
+        for (ReportSnapshot snapshot : snapshots) {
+            FileAttachment file = snapshot.getFile();
+            if (file != null) {
+                snapshot.setFile(null);
+                reportSnapshotRepository.flush();
+                bunnyStorageService.delete(file.getStoragePath());
+                fileAttachmentRepository.delete(file);
+            }
+        }
+        if (!snapshots.isEmpty()) {
+            reportSnapshotRepository.deleteAllInBatch(snapshots);
         }
 
-        project.setDeletedAt(LocalDateTime.now());
-        project.setDeletedBy(actorId);
-        projectRepository.save(project);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEstimation(UUID projectId, UUID estimationId) {
-        Project project = projectRepository.findByIdAndDeletedAtIsNull(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado"));
-        requireDeletableStatus(project.getStatus());
-
-        var estimation = reportSnapshotRepository
-                .findByIdAndProject_IdAndProject_DeletedAtIsNull(estimationId, projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Estimación no encontrada"));
-        FileAttachment file = estimation.getFile();
-        if (file != null) {
-            estimation.setFile(null);
-            reportSnapshotRepository.saveAndFlush(estimation);
-            bunnyStorageService.delete(file.getStoragePath());
-            fileAttachmentRepository.delete(file);
+        List<Task> tasks = taskRepository.findByStory_Project_Id(id);
+        if (!tasks.isEmpty()) {
+            taskRepository.deleteAssignmentsByTaskIds(tasks.stream().map(Task::getId).toList());
+            taskRepository.deleteAllInBatch(tasks);
         }
-        reportSnapshotRepository.delete(estimation);
+
+        List<UserStory> stories = userStoryRepository.findByProject_Id(id);
+        if (!stories.isEmpty()) {
+            userStoryRepository.deleteAllInBatch(stories);
+        }
+
+        projectStatusHistoryRepository.deleteByProject_Id(id);
+        projectRepository.flush();
+        projectRepository.delete(project);
     }
 
     private List<ProjectResponse> toResponsesWithEstimations(List<Project> projects) {

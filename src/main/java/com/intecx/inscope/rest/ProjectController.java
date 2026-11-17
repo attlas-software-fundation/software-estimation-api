@@ -161,20 +161,4 @@ public class ProjectController {
         projectService.delete(id, principal.getId());
         return ResponseEntity.noContent().build();
     }
-
-    @Operation(summary = "Eliminar una estimación de un proyecto en estado Borrador o Rechazado")
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Estimación eliminada exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Proyecto o estimación no encontrado"),
-            @ApiResponse(responseCode = "409", description = "El estado del proyecto no permite eliminar la estimación")
-    })
-    @DeleteMapping("/{projectId}/estimations/{estimationId}")
-    @PreAuthorize("hasAuthority('estimation:delete')")
-    public ResponseEntity<Void> deleteEstimation(
-            @PathVariable UUID projectId,
-            @PathVariable UUID estimationId
-    ) {
-        projectService.deleteEstimation(projectId, estimationId);
-        return ResponseEntity.noContent().build();
-    }
 }

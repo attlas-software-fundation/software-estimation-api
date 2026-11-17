@@ -23,4 +23,6 @@ public interface ReportSnapshotRepository extends JpaRepository<ReportSnapshot, 
     List<ReportSnapshot> findByProjectIds(@Param("projectIds") Collection<UUID> projectIds);
 
     Optional<ReportSnapshot> findByIdAndProject_IdAndProject_DeletedAtIsNull(UUID id, UUID projectId);
+
+    List<ReportSnapshot> findByProject_Id(UUID projectId);
 }

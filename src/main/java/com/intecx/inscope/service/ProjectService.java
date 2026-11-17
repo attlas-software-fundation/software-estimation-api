@@ -25,6 +25,4 @@ public interface ProjectService {
     List<ProjectStatusHistoryResponse> getStatusHistory(UUID id);
 
     void delete(UUID id, UUID actorId);
-
-    void deleteEstimation(UUID projectId, UUID estimationId);
 }
