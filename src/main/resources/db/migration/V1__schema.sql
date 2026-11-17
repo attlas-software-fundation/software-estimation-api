@@ -17,7 +17,7 @@ CREATE TYPE in_scope.sprint_unit AS ENUM ('DAYS', 'WEEKS');
 CREATE TYPE in_scope.risk_level AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
 
 -- archivos en Bunny (metadata; avatars, reportes PDF, etc.)
-CREATE TABLE in_scope.file_attachments
+CREATE TABLE IF NOT EXISTS in_scope.file_attachments
 (
     id           UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     type         VARCHAR(30)  NOT NULL,
@@ -30,7 +30,7 @@ CREATE TABLE in_scope.file_attachments
 );
 
 -- seguridad
-CREATE TABLE in_scope.permissions
+CREATE TABLE IF NOT EXISTS in_scope.permissions
 (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     code        VARCHAR(40)  NOT NULL UNIQUE,
@@ -39,7 +39,7 @@ CREATE TABLE in_scope.permissions
     group_label VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE in_scope.roles
+CREATE TABLE IF NOT EXISTS in_scope.roles
 (
     id          UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     code        VARCHAR(40)  NOT NULL UNIQUE,
@@ -49,7 +49,7 @@ CREATE TABLE in_scope.roles
     is_active   BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE in_scope.role_permissions
+CREATE TABLE IF NOT EXISTS in_scope.role_permissions
 (
     id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     role_id       UUID NOT NULL,
@@ -59,7 +59,7 @@ CREATE TABLE in_scope.role_permissions
     CONSTRAINT fk_role_permissions_permission FOREIGN KEY (permission_id) REFERENCES in_scope.permissions (id)
 );
 
-CREATE TABLE in_scope.users
+CREATE TABLE IF NOT EXISTS in_scope.users
 (
     id            UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     role_id       UUID         NOT NULL,
@@ -79,7 +79,7 @@ CREATE TABLE in_scope.users
     CONSTRAINT fk_users_avatar FOREIGN KEY (avatar_id) REFERENCES in_scope.file_attachments (id) ON DELETE SET NULL
 );
 
-CREATE TABLE in_scope.password_reset_tokens
+CREATE TABLE IF NOT EXISTS in_scope.password_reset_tokens
 (
     id          UUID PRIMARY KEY      DEFAULT gen_random_uuid(),
     email       VARCHAR(255) NOT NULL,
@@ -90,10 +90,10 @@ CREATE TABLE in_scope.password_reset_tokens
     created_at  TIMESTAMP  NOT NULL DEFAULT now()
 );
 
-CREATE INDEX password_reset_tokens_email_idx ON in_scope.password_reset_tokens (email, expires_at DESC);
+CREATE INDEX IF NOT EXISTS password_reset_tokens_email_idx ON in_scope.password_reset_tokens (email, expires_at DESC);
 
 -- perfiles técnicos (hourly_rate = CER, costo estándar por hora)
-CREATE TABLE in_scope.technical_profiles
+CREATE TABLE IF NOT EXISTS in_scope.technical_profiles
 (
     id               UUID PRIMARY KEY                     DEFAULT gen_random_uuid(),
     name             VARCHAR(100)                NOT NULL,
@@ -112,7 +112,7 @@ CREATE TABLE in_scope.technical_profiles
 );
 
 -- proyectos
-CREATE TABLE in_scope.projects
+CREATE TABLE IF NOT EXISTS in_scope.projects
 (
     id          UUID PRIMARY KEY                   DEFAULT gen_random_uuid(),
     name        VARCHAR(150)              NOT NULL,
@@ -131,7 +131,7 @@ CREATE TABLE in_scope.projects
     CONSTRAINT fk_projects_owner FOREIGN KEY (owner_id) REFERENCES in_scope.users (id)
 );
 
-CREATE TABLE in_scope.project_status_history
+CREATE TABLE IF NOT EXISTS in_scope.project_status_history
 (
     id              UUID PRIMARY KEY                   DEFAULT gen_random_uuid(),
     project_id      UUID                      NOT NULL,
@@ -143,10 +143,10 @@ CREATE TABLE in_scope.project_status_history
     CONSTRAINT fk_project_status_history_user FOREIGN KEY (changed_by) REFERENCES in_scope.users (id)
 );
 
-CREATE INDEX project_status_history_project_idx ON in_scope.project_status_history (project_id, changed_at DESC);
+CREATE INDEX IF NOT EXISTS project_status_history_project_idx ON in_scope.project_status_history (project_id, changed_at DESC);
 
 -- backlog (historias de usuario y tareas)
-CREATE TABLE in_scope.user_stories
+CREATE TABLE IF NOT EXISTS in_scope.user_stories
 (
     id                  UUID PRIMARY KEY                   DEFAULT gen_random_uuid(),
     project_id          UUID                      NOT NULL,
@@ -168,7 +168,7 @@ CREATE TABLE in_scope.user_stories
     CONSTRAINT fk_user_stories_project FOREIGN KEY (project_id) REFERENCES in_scope.projects (id) ON DELETE RESTRICT
 );
 
-CREATE TABLE in_scope.tasks
+CREATE TABLE IF NOT EXISTS in_scope.tasks
 (
     id             UUID PRIMARY KEY                 DEFAULT gen_random_uuid(),
     story_id       UUID                    NOT NULL,
@@ -186,9 +186,9 @@ CREATE TABLE in_scope.tasks
     CONSTRAINT fk_tasks_story FOREIGN KEY (story_id) REFERENCES in_scope.user_stories (id) ON DELETE RESTRICT
 );
 
-CREATE INDEX tasks_story_position_idx ON in_scope.tasks (story_id, position);
+CREATE INDEX IF NOT EXISTS tasks_story_position_idx ON in_scope.tasks (story_id, position);
 
-CREATE TABLE in_scope.task_assignments
+CREATE TABLE IF NOT EXISTS in_scope.task_assignments
 (
     task_id              UUID NOT NULL,
     technical_profile_id UUID NOT NULL,
@@ -197,7 +197,7 @@ CREATE TABLE in_scope.task_assignments
     CONSTRAINT fk_task_assignments_profile FOREIGN KEY (technical_profile_id) REFERENCES in_scope.technical_profiles (id)
 );
 
-CREATE TABLE in_scope.task_hour_adjustments
+CREATE TABLE IF NOT EXISTS in_scope.task_hour_adjustments
 (
     task_id              UUID          NOT NULL,
     technical_profile_id UUID          NOT NULL,
@@ -211,7 +211,7 @@ CREATE TABLE in_scope.task_hour_adjustments
 );
 
 -- configuración de la estimación (una fila por proyecto)
-CREATE TABLE in_scope.sprint_configs
+CREATE TABLE IF NOT EXISTS in_scope.sprint_configs
 (
     project_id UUID PRIMARY KEY,
     velocity   INTEGER                 NOT NULL DEFAULT 5,
@@ -222,7 +222,7 @@ CREATE TABLE in_scope.sprint_configs
     CONSTRAINT fk_sprint_configs_project FOREIGN KEY (project_id) REFERENCES in_scope.projects (id) ON DELETE CASCADE
 );
 
-CREATE TABLE in_scope.risk_configs
+CREATE TABLE IF NOT EXISTS in_scope.risk_configs
 (
     project_id         UUID PRIMARY KEY,
     level              in_scope.risk_level NOT NULL DEFAULT 'MEDIUM',
@@ -233,7 +233,7 @@ CREATE TABLE in_scope.risk_configs
 );
 
 -- reportes (copias inmutables de una estimación)
-CREATE TABLE in_scope.report_snapshots
+CREATE TABLE IF NOT EXISTS in_scope.report_snapshots
 (
     id                            UUID PRIMARY KEY                   DEFAULT gen_random_uuid(),
     project_id                    UUID                      NOT NULL,
@@ -264,4 +264,4 @@ CREATE TABLE in_scope.report_snapshots
     CONSTRAINT fk_report_snapshots_file FOREIGN KEY (file_id) REFERENCES in_scope.file_attachments (id) ON DELETE SET NULL
 );
 
-CREATE INDEX report_snapshots_project_idx ON in_scope.report_snapshots (project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS report_snapshots_project_idx ON in_scope.report_snapshots (project_id, created_at DESC);
