@@ -7,6 +7,7 @@ import lombok.Builder;
 @Builder
 public record RiskConfigResponse(
         RiskLevel level,
-        BigDecimal contingencyMargin
+        BigDecimal contingencyMargin,
+        boolean saved
 ) {
 }

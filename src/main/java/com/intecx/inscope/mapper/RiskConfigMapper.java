@@ -14,6 +14,7 @@ public class RiskConfigMapper {
         return RiskConfigResponse.builder()
                 .level(entity.getLevel())
                 .contingencyMargin(entity.getContingencyMargin())
+                .saved(true)
                 .build();
     }
 }

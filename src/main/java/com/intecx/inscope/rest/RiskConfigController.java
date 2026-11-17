@@ -32,7 +32,7 @@ public class RiskConfigController {
     @Operation(summary = "Obtener la configuración de riesgo de un proyecto")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Configuración obtenida exitosamente"),
-            @ApiResponse(responseCode = "404", description = "Configuración de riesgo no encontrada")
+            @ApiResponse(responseCode = "404", description = "Proyecto no encontrado")
     })
     @GetMapping
     @PreAuthorize("hasAuthority('risk:read')")
