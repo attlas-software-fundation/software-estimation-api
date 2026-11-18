@@ -1,7 +1,29 @@
+name: stride
+
 services:
-  inscope-ai:
-    image: ghcr.io/${AI_IMAGE_OWNER:-vargas-jc}/software-estimation-ai:latest
-    container_name: inscope-ai
+  stride-db:
+    image: postgres:17-alpine
+    container_name: stride-db
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stride}
+      POSTGRES_USER: ${SPRING_DATASOURCE_USERNAME}
+      POSTGRES_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - stride-net
+
+  stride-ai:
+    image: ghcr.io/vargas-jc/software-estimation-ai:latest
+    container_name: stride-ai
     restart: unless-stopped
     ports:
       - "127.0.0.1:8000:8000"
@@ -13,38 +35,51 @@ services:
       - ai_data:/app/data
       - ai_artifacts:/app/artifacts
     networks:
-      - inscope-net
+      - stride-net
 
-  inscope-api:
-    image: ghcr.io/${API_IMAGE_OWNER:-attlas-software-fundation}/software-estimation-api:latest
-    container_name: inscope-api
+  stride-api:
+    image: ghcr.io/attlas-software-fundation/software-estimation-api:latest
+    container_name: stride-api
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8085:8080"
     depends_on:
-      - inscope-ai
+      stride-db:
+        condition: service_healthy
+      stride-ai:
+        condition: service_started
     environment:
       SPRING_PROFILES_ACTIVE: prod
-      AZURE_KEYVAULT_ENDPOINT: ${AZURE_KEYVAULT_ENDPOINT}
-      AI_SERVICE_URL: http://inscope-ai:8000
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://stride-db:5432/stride}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      IN_SCOPE_JWT_SECRET: ${IN_SCOPE_JWT_SECRET}
+      IN_SCOPE_CORS_ALLOWED_ORIGINS: ${IN_SCOPE_CORS_ALLOWED_ORIGINS}
+      IN_SCOPE_BUNNY_ACCESS_KEY: ${IN_SCOPE_BUNNY_ACCESS_KEY}
+      AI_SERVICE_URL: http://stride-ai:8000
     networks:
-      - inscope-net
+      - stride-net
 
-  inscope-client:
-    image: ghcr.io/${CLIENT_IMAGE_OWNER:-attlas-software-fundation}/software-estimation-client:latest
-    container_name: inscope-client
+  stride-client:
+    image: ghcr.io/attlas-software-fundation/software-estimation-client:latest
+    container_name: stride-client
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3002:3000"
     depends_on:
-      - inscope-api
+      - stride-api
+    environment:
+      NODE_ENV: production
     networks:
-      - inscope-net
+      - stride-net
 
 volumes:
+  postgres_data:
   ai_data:
   ai_artifacts:
 
 networks:
-  inscope-net:
+  stride-net:
     driver: bridge
