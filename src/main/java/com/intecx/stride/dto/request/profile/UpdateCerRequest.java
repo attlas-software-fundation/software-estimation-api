@@ -1,0 +1,29 @@
+package com.intecx.stride.dto.request.profile;
+
+import com.intecx.stride.enumeration.CurrencyCode;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateCerRequest {
+
+    @NotNull(message = "El costo estándar (CER) por hora es obligatorio")
+    @DecimalMin(value = "0.01", message = "El costo estándar (CER) por hora debe ser mayor a 0")
+    @DecimalMax(value = "9999999999.99", message = "El costo estándar (CER) no puede exceder el límite permitido")
+    @Digits(integer = 10, fraction = 2, message = "El costo estándar (CER) debe tener como máximo 10 dígitos enteros y 2 decimales")
+    private BigDecimal hourlyRate;
+
+    private CurrencyCode currency;
+}

@@ -1,0 +1,16 @@
+package com.intecx.stride.repository;
+
+import com.intecx.stride.entity.Project;
+import java.util.Optional;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ProjectRepository extends JpaRepository<Project, UUID>, JpaSpecificationExecutor<Project> {
+
+    Optional<Project> findByIdAndDeletedAtIsNull(UUID id);
+
+    boolean existsByResponsible_Id(UUID responsibleId);
+}
