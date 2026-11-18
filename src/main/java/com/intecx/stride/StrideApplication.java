@@ -10,7 +10,7 @@ import org.springframework.util.StringUtils;
 
 @SpringBootApplication
 @EnableScheduling
-public class InScopeApplication {
+public class StrideApplication {
 
     static {
         System.setProperty("io.netty.transport.noNative", "true");
@@ -32,7 +32,7 @@ public class InScopeApplication {
             });
         }
 
-        SpringApplication.run(InScopeApplication.class, args);
+        SpringApplication.run(StrideApplication.class, args);
     }
 
     private static boolean isDevProfile() {
