@@ -54,8 +54,7 @@ class TaskServiceImplTest {
                 userStoryRepository,
                 projectRepository,
                 technicalProfileRepository,
-                new TaskMapper(),
-                new TechnicalProfileMapper()
+                new TaskMapper()
         );
     }
 

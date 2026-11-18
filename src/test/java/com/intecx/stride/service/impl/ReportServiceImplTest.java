@@ -11,6 +11,8 @@ import com.intecx.stride.exception.ResourceNotFoundException;
 import com.intecx.stride.mapper.FileAttachmentMapper;
 import com.intecx.stride.repository.FileAttachmentRepository;
 import com.intecx.stride.repository.ReportSnapshotRepository;
+import com.intecx.stride.repository.TaskRepository;
+import com.intecx.stride.repository.UserStoryRepository;
 import com.intecx.stride.service.BunnyStorageService;
 import com.intecx.stride.service.ProjectService;
 import java.util.Optional;
@@ -36,6 +38,10 @@ class ReportServiceImplTest {
     @Mock
     private ProjectService projectService;
     @Mock
+    private UserStoryRepository userStoryRepository;
+    @Mock
+    private TaskRepository taskRepository;
+    @Mock
     private FileAttachmentMapper fileAttachmentMapper;
 
     private ReportServiceImpl service;
@@ -47,6 +53,8 @@ class ReportServiceImplTest {
                 fileAttachmentRepository,
                 bunnyStorageService,
                 projectService,
+                userStoryRepository,
+                taskRepository,
                 fileAttachmentMapper
         );
     }
