@@ -3,11 +3,6 @@ spring:
   config:
     activate:
       on-profile: dev
-  cloud:
-    azure:
-      keyvault:
-        secret:
-          enabled: false
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}

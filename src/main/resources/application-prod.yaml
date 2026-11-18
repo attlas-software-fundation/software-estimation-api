@@ -1,40 +1,33 @@
-# Perfil Azure. Secretos desde Key Vault (Managed Identity).
-# En la VM/App Service:
+# Perfil producción (VPS). Variables de entorno inyectadas desde GitHub Secrets en el despliegue:
 #   SPRING_PROFILES_ACTIVE=prod
-#   AZURE_KEYVAULT_ENDPOINT=https://<nombre>.vault.azure.net/
-#
-# Secretos en el vault (guiones → propiedades Spring):
-#   spring-datasource-url
-#   spring-datasource-username
-#   spring-datasource-password
-#   spring-mail-username
-#   spring-mail-password
-#   in-scope-jwt-secret
-#   in-scope-cors-allowed-origins
-#   in-scope-bunny-access-key
-#
-# Alternativa sin vault: mismas claves como variables de entorno
-# (SPRING_DATASOURCE_URL, IN_SCOPE_JWT_SECRET, IN_SCOPE_BUNNY_ACCESS_KEY, …).
+#   SPRING_DATASOURCE_URL
+#   SPRING_DATASOURCE_USERNAME
+#   SPRING_DATASOURCE_PASSWORD
+#   SPRING_MAIL_USERNAME
+#   SPRING_MAIL_PASSWORD
+#   IN_SCOPE_JWT_SECRET
+#   IN_SCOPE_CORS_ALLOWED_ORIGINS
+#   IN_SCOPE_BUNNY_ACCESS_KEY
+#   AI_SERVICE_URL
 spring:
   config:
     activate:
       on-profile: prod
-  cloud:
-    azure:
-      keyvault:
-        secret:
-          enabled: true
-          property-sources:
-            - endpoint: ${AZURE_KEYVAULT_ENDPOINT}
-              credential:
-                managed-identity-enabled: true
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  mail:
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+
 in-scope:
   bunny:
-    access-key: ${in.scope.bunny.access.key}
+    access-key: ${IN_SCOPE_BUNNY_ACCESS_KEY}
   jwt:
-    secret: ${in.scope.jwt.secret}
+    secret: ${IN_SCOPE_JWT_SECRET}
   cors:
-    allowed-origins: ${in.scope.cors.allowed.origins}
+    allowed-origins: ${IN_SCOPE_CORS_ALLOWED_ORIGINS}
 
 logging:
   level:

@@ -33,3 +33,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Nginx local/VPS ###
+nginx.stride.conf
