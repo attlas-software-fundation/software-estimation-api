@@ -58,7 +58,7 @@ cp .env.example .env
 # Azure / producción
 export SPRING_PROFILES_ACTIVE=prod
 export AZURE_KEYVAULT_ENDPOINT=https://<tu-vault>.vault.azure.net/
-java -jar target/inscope-api-0.0.1.jar
+java -jar target/stride-api-0.0.1.jar
 ```
 
 ### Secretos a crear en Key Vault (prod)
