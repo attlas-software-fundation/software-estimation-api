@@ -37,7 +37,7 @@ public class EmailServiceImpl implements EmailService {
         Map<String, Object> model = new HashMap<>();
         model.put("otpCode", otpCode);
         model.put("expirationMinutes", expirationMinutes);
-        sendHtml(toEmail, "Código de verificación - Intecx InScope", "otp.ftlh", model);
+        sendHtml(toEmail, "Código de verificación - Intecx Stride", "otp.ftlh", model);
     }
 
     @Override
@@ -46,7 +46,7 @@ public class EmailServiceImpl implements EmailService {
         model.put("firstName", firstName);
         model.put("otpCode", otpCode);
         model.put("expirationHours", expirationHours);
-        sendHtml(toEmail, "Invitación a Intecx InScope", "invitation.ftlh", model);
+        sendHtml(toEmail, "Invitación a Intecx Stride", "invitation.ftlh", model);
     }
 
     @Override
@@ -54,7 +54,7 @@ public class EmailServiceImpl implements EmailService {
         Map<String, Object> model = new HashMap<>();
         model.put("firstName", firstName);
         model.put("email", toEmail);
-        sendHtml(toEmail, "Bienvenido a Intecx InScope", "welcome.ftlh", model);
+        sendHtml(toEmail, "Bienvenido a Intecx Stride", "welcome.ftlh", model);
     }
 
     private void sendHtml(String to, String subject, String templateName, Map<String, Object> model) {
