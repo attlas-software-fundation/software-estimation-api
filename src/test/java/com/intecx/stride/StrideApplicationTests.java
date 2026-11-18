@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @Disabled("Requiere PostgreSQL activo y variables de entorno locales")
-class InScopeApplicationTests {
+class StrideApplicationTests {
 
     @Test
     void contextLoads() {
