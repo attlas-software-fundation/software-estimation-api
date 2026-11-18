@@ -33,7 +33,7 @@ public class OpenApiConfig {
     public OpenAPI openApi() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Software Estimation API (InScope)")
+                        .title("Software Estimation API (Stride)")
                         .version("v1")
                         .description("API REST de estimación de software con autenticación JWT"))
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
