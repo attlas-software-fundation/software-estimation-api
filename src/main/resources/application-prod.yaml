@@ -32,4 +32,4 @@ in-scope:
 logging:
   level:
     root: WARN
-    com.intecx.inscope: INFO
+    com.intecx.stride: INFO

@@ -21,4 +21,4 @@ in-scope:
 
 logging:
   level:
-    com.intecx.inscope: DEBUG
+    com.intecx.stride: DEBUG

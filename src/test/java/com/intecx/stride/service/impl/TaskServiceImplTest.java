@@ -116,7 +116,7 @@ class TaskServiceImplTest {
     }
 
     @Test
-    void softDeletesTaskWithoutDeletingItsAssignments() {
+    void hardDeletesTaskAndFlushes() {
         UUID taskId = UUID.randomUUID();
         Task task = Task.builder()
                 .id(taskId)
@@ -129,12 +129,10 @@ class TaskServiceImplTest {
                 .estimateHours(4)
                 .build();
         when(taskRepository.findByIdAndDeletedAtIsNull(taskId)).thenReturn(Optional.of(task));
-        when(taskRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         taskService.delete(taskId, UUID.randomUUID());
 
-        ArgumentCaptor<Task> taskCaptor = ArgumentCaptor.forClass(Task.class);
-        verify(taskRepository).save(taskCaptor.capture());
-        org.junit.jupiter.api.Assertions.assertNotNull(taskCaptor.getValue().getDeletedAt());
+        verify(taskRepository).flush();
+        verify(taskRepository).delete(task);
     }
 }
