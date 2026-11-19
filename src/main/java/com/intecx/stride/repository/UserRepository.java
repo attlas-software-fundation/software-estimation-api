@@ -1,6 +1,7 @@
 package com.intecx.stride.repository;
 
 import com.intecx.stride.entity.User;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +24,7 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE LOWER(u.email) = LOWER(:email) AND u.deletedAt IS NULL AND u.id <> :id")
     boolean existsActiveByEmailAndIdNot(@Param("email") String email, @Param("id") UUID id);
+
+    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL AND u.isActive = true ORDER BY u.firstName ASC, u.lastName ASC")
+    List<User> findAllActiveOrderByName();
 }

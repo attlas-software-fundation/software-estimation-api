@@ -9,6 +9,7 @@ import com.intecx.stride.dto.request.user.ToggleUserStatusRequest;
 import com.intecx.stride.dto.request.user.UpdateUserRequest;
 import com.intecx.stride.dto.response.MessageResponse;
 import com.intecx.stride.dto.response.UserResponse;
+import com.intecx.stride.dto.response.UserSummaryResponse;
 import com.intecx.stride.entity.FileAttachment;
 import com.intecx.stride.entity.PasswordResetToken;
 import com.intecx.stride.entity.Role;
@@ -33,6 +34,7 @@ import com.intecx.stride.service.support.BunnyPaths;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
@@ -74,6 +76,19 @@ public class UserServiceImpl implements UserService {
     public PaginatedResponse<UserResponse> search(QueryRequest query) {
         Specification<User> notDeletedScope = (root, q, cb) -> cb.isNull(root.get("deletedAt"));
         return QuerySupport.search(userRepository, notDeletedScope, USER_FIELDS, query, userMapper::toResponse, "userResponse");
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserSummaryResponse> listResponsibles() {
+        return userRepository.findAllActiveOrderByName().stream()
+                .map(user -> UserSummaryResponse.builder()
+                        .id(user.getId())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .email(user.getEmail())
+                        .build())
+                .toList();
     }
 
     @Override

@@ -7,11 +7,14 @@ import com.intecx.stride.dto.request.user.ToggleUserStatusRequest;
 import com.intecx.stride.dto.request.user.UpdateUserRequest;
 import com.intecx.stride.dto.response.MessageResponse;
 import com.intecx.stride.dto.response.UserResponse;
+import com.intecx.stride.dto.response.UserSummaryResponse;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface UserService {
     PaginatedResponse<UserResponse> search(QueryRequest query);
+    List<UserSummaryResponse> listResponsibles();
     UserResponse getById(UUID id);
     UserResponse create(CreateUserRequest request, UUID actorId);
     UserResponse update(UUID id, UpdateUserRequest request, UUID actorId);

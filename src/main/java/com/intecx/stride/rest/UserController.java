@@ -7,6 +7,7 @@ import com.intecx.stride.dto.request.user.ToggleUserStatusRequest;
 import com.intecx.stride.dto.request.user.UpdateUserRequest;
 import com.intecx.stride.dto.response.MessageResponse;
 import com.intecx.stride.dto.response.UserResponse;
+import com.intecx.stride.dto.response.UserSummaryResponse;
 import com.intecx.stride.security.UserPrincipal;
 import com.intecx.stride.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -52,6 +54,16 @@ public class UserController {
     public ResponseEntity<PaginatedResponse<UserResponse>> search(@RequestBody(required = false) QueryRequest query) {
         PaginatedResponse<UserResponse> response = userService.search(query);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Listar usuarios activos para asignación de responsable")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Listado de responsables obtenido exitosamente")
+    })
+    @GetMapping("/responsibles")
+    @PreAuthorize("hasAnyAuthority('project:read', 'project:write', 'user:read')")
+    public ResponseEntity<List<UserSummaryResponse>> listResponsibles() {
+        return ResponseEntity.ok(userService.listResponsibles());
     }
 
     @Operation(summary = "Obtener un usuario por su ID")
