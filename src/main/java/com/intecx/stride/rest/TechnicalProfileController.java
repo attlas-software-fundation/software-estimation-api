@@ -57,7 +57,7 @@ public class TechnicalProfileController {
             @ApiResponse(responseCode = "200", description = "Listado de perfiles activos obtenido exitosamente")
     })
     @GetMapping("/active")
-    @PreAuthorize("hasAuthority('profile:read')")
+    @PreAuthorize("hasAnyAuthority('profile:read', 'backlog:read', 'estimation:read')")
     public ResponseEntity<List<TechnicalProfileResponse>> listActive() {
         return ResponseEntity.ok(technicalProfileService.listActive());
     }
